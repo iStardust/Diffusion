@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import os
 
-PATH = '../dataset/airplane'
+PATH = '../../dataset/airplane'
 
 
 def normalizeXZY(point):
@@ -16,16 +16,16 @@ def normalizeXZY(point):
 
 
 class ModelNetDataLoader(Dataset):
-    def __init__(self, filepath, num_points=1024, mode='train', normalize=True):
+    def __init__(self, filepath, num_points=1024, mode='npz', normalize=True):
         self.filepath = filepath
         self.num_points = num_points
         self.normalize = normalize
-
+        self.mode = 1 if mode == 'npz' else 0
         self.filesdir = os.listdir(os.path.join(PATH))
-        self.files = [i for i in self.filesdir if i.endswith('npz')]
-
+        self.filesnpz = [i for i in self.filesdir if i.endswith('npz')]
+        self.filestxt = [i for i in self.filesdir if i.endswith('txt')]
     def __len__(self):
-        return len(self.files)
+        return len(self.filesnpz)
 
     def __getitem__(self, index):
         # class_name, data_path = self.datapath[index]
@@ -35,15 +35,24 @@ class ModelNetDataLoader(Dataset):
         # if self.normalize:
         #     point_set[:, 0:3] = normalizeXZY(point_set[:, 0:3])
         # return point_set, classid
-        pointcloud_path = self.files[index]
-        pointcloud = np.load(os.path.join(PATH, pointcloud_path))['pc']
+        if self.mode:
+            pointcloud_path = self.filesnpz[index]
+            pointcloud = np.load(os.path.join(PATH, pointcloud_path))['pc']
+            pointcloud = np.asarray(pointcloud).astype(np.float32)
+        else:
+            pointcloud_path = self.filestxt[index]
+            pointcloud = np.loadtxt(os.path.join(
+                PATH, pointcloud_path), delimiter=' ').astype(np.float32)
+        if self.normalize:
+            pointcloud[:, :3] = normalizeXZY(pointcloud[:, :3])
+        pointcloud = pointcloud[:self.num_points,:]
         return pointcloud
 
     def dataloader(self, batch_size=32, shuffle=True, num_workers=0):
         return DataLoader(self, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
 
 
-def Prepare_Dataset(filepath, num_points=1024, mode='train', normalize=True, batch_size=32, shuffle=True, num_workers=0):
+def Prepare_Dataset(filepath, num_points=1024, mode='txt', normalize=True, batch_size=32, shuffle=True, num_workers=0):
     dataset = ModelNetDataLoader(
         filepath, num_points=num_points, mode=mode, normalize=normalize)
     dataloader = dataset.dataloader(
@@ -52,3 +61,5 @@ def Prepare_Dataset(filepath, num_points=1024, mode='train', normalize=True, bat
 
 
 dataset, dataloader = Prepare_Dataset(PATH)
+for i in dataloader:
+    print(i.shape)
