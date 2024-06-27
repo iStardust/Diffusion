@@ -24,6 +24,7 @@ class ModelNetDataLoader(Dataset):
         self.filesdir = os.listdir(os.path.join(PATH))
         self.filesnpz = [i for i in self.filesdir if i.endswith('npz')]
         self.filestxt = [i for i in self.filesdir if i.endswith('txt')]
+
     def __len__(self):
         return len(self.filesnpz)
 
@@ -38,6 +39,7 @@ class ModelNetDataLoader(Dataset):
         if self.mode:
             pointcloud_path = self.filesnpz[index]
             pointcloud = np.load(os.path.join(PATH, pointcloud_path))['pc']
+            # print(pointcloud)
             pointcloud = np.asarray(pointcloud).astype(np.float32)
         else:
             pointcloud_path = self.filestxt[index]
@@ -45,14 +47,15 @@ class ModelNetDataLoader(Dataset):
                 PATH, pointcloud_path), delimiter=' ').astype(np.float32)
         if self.normalize:
             pointcloud[:, :3] = normalizeXZY(pointcloud[:, :3])
-        pointcloud = pointcloud[:self.num_points,:]
+        pointcloud = np.random.permutation(pointcloud)
+        pointcloud = pointcloud[:self.num_points, :]
         return pointcloud
 
     def dataloader(self, batch_size=32, shuffle=True, num_workers=0):
         return DataLoader(self, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
 
 
-def Prepare_Dataset(filepath, num_points=1024, mode='txt', normalize=True, batch_size=32, shuffle=True, num_workers=0):
+def Prepare_Dataset(filepath, num_points=1024, mode='npz', normalize=True, batch_size=32, shuffle=True, num_workers=0):
     dataset = ModelNetDataLoader(
         filepath, num_points=num_points, mode=mode, normalize=normalize)
     dataloader = dataset.dataloader(
