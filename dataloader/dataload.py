@@ -63,6 +63,6 @@ def Prepare_Dataset(filepath, num_points=1024, mode='npz', normalize=True, batch
     return dataset, dataloader
 
 
-dataset, dataloader = Prepare_Dataset(PATH)
-for i in dataloader:
-    print(i.shape)
+# dataset, dataloader = Prepare_Dataset(PATH)
+# for i in dataloader:
+#     print(i.shape)
