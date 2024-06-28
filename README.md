@@ -11,7 +11,7 @@ gaussian_diffusion.py里实现了扩散模型，其训练过程为，给定x_0�
 noise predictor训练完成后，利用p_sample，从x_T开始逐渐采样生成x_0.
 
 ## 文件结构
-
+```
 dataloader/
     dataset/
         dataset/
@@ -21,6 +21,8 @@ dataloader/
             gun/
             table/
         dataload.py
+        
+```
 
 ## 训练
 
