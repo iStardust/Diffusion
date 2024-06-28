@@ -73,8 +73,3 @@ def Prepare_Dataset(
         batch_size=batch_size, shuffle=shuffle, num_workers=num_workers
     )
     return dataset, dataloader
-
-
-# dataset, dataloader = Prepare_Dataset(PATH)
-# for i in dataloader:
-#     print(i.shape)

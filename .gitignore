@@ -1,1 +1,5 @@
 dataloader/dataset
+ckpts/uncondition
+Diffusion-main/
+**/__pycache__/
+**.pyc

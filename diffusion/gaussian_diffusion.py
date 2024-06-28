@@ -43,8 +43,8 @@ class GaussianDiffusion(nn.Module):
 
         self.num_timesteps = int(betas.shape[0])
 
-        alphas = 1.0 - betas
-        self.alphas_cumprod = np.cumprod(alphas, axis=0)
+        self.alphas = 1.0 - betas
+        self.alphas_cumprod = np.cumprod(self.alphas, axis=0)
         self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1])
         self.alphas_cumprod_next = np.append(self.alphas_cumprod[1:], 0.0)
         assert self.alphas_cumprod_prev.shape == (self.num_timesteps,)
@@ -53,6 +53,7 @@ class GaussianDiffusion(nn.Module):
         self.sqrt_alphas_cumprod = np.sqrt(self.alphas_cumprod)
         self.sqrt_one_minus_alphas_cumprod = np.sqrt(1.0 - self.alphas_cumprod)
         self.log_one_minus_alphas_cumprod = np.log(1.0 - self.alphas_cumprod)
+        self.sqrt_recip_alphas = np.sqrt(1.0 / self.alphas)
         self.sqrt_recip_alphas_cumprod = np.sqrt(1.0 / self.alphas_cumprod)
         self.sqrt_recipm1_alphas_cumprod = np.sqrt(1.0 / self.alphas_cumprod - 1)
 
@@ -69,7 +70,7 @@ class GaussianDiffusion(nn.Module):
         )
         self.posterior_mean_coef2 = (
             (1.0 - self.alphas_cumprod_prev)
-            * np.sqrt(alphas)
+            * np.sqrt(self.alphas)
             / (1.0 - self.alphas_cumprod)
         )
         self.noise_predictor = noise_predictor
@@ -183,7 +184,7 @@ class GaussianDiffusion(nn.Module):
             (t != 0).float().view(-1, *([1] * (len(x_t.shape) - 1)))
         )  # no noise when t == 0
 
-        coeff1 = _extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape)
+        coeff1 = _extract_into_tensor(self.sqrt_recip_alphas, t, x_t.shape)
         coeff2 = _extract_into_tensor(self.betas, t, x_t.shape) / _extract_into_tensor(
             self.sqrt_one_minus_alphas_cumprod, t, x_t.shape
         )
@@ -191,6 +192,7 @@ class GaussianDiffusion(nn.Module):
         predicted_mean = coeff1 * (x_t - coeff2 * pred_noise)
 
         var = torch.sqrt(_extract_into_tensor(self.posterior_variance, t, x_t.shape))
+
         sample = predicted_mean + nonzero_mask * var * z
         return sample
 
@@ -200,10 +202,11 @@ class GaussianDiffusion(nn.Module):
 
         all_x = [x_t]
         for i in tqdm(reversed(range(0, self.num_timesteps))):
+
             with torch.no_grad():
-                pred_noise = self.noise_predictor(x_t, i)
-                z = torch.randn_like(x_t) if i > 0 else torch.zeros_like(x_t)
-                x_next = self.p_sample(x_t, i, pred_noise, z)
+                batch_time = torch.full((shape[0],), i, device=device, dtype=torch.int)
+
+                x_next = self.p_sample(x_t, batch_time)
                 x_t = x_next
                 all_x.append(x_t)
 
