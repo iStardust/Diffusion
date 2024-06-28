@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     batch_size = 10
-    lr = 1e-4
+    lr = 2e-4
     epochs = 50
     num_timesteps = 1000
     chosen_category = "airplane"

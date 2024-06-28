@@ -26,7 +26,7 @@ dataloader/
 
 ## 训练
 
-运行`python train.py`进行训练。修改`chosen_category`参数改变类别（airplane,car,chair,rifle,table），训练过程中会不断取损失最小的模型保存到文件夹`ckpts/uncondition/`下。
+运行`python train.py`进行训练。修改`chosen_category`参数改变类别（airplane,car,chair,gun,table），训练过程中会不断取损失最小的模型保存到文件夹`ckpts/uncondition/`下。
 
 ## 生成
 
