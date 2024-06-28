@@ -175,9 +175,7 @@ class GaussianDiffusion(nn.Module):
         :param x_t
         :param t: the value of t, starting at 0 for the first diffusion step.
 
-        :return: a dict containing the following keys:
-                 - 'sample': a random sample from the model.
-                 - 'pred_xstart': a prediction of x_0.
+        :return: x_{t-1}
         """
         pred_noise = self.noise_predictor(x_t, t)
         z = torch.randn_like(x_t)
