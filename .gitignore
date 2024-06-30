@@ -3,3 +3,4 @@ ckpts/uncondition
 Diffusion-main/
 **/__pycache__/
 **.pyc
+results/
