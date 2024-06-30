@@ -47,13 +47,18 @@ class ModelNetDataset(Dataset):
             ).astype(np.float32)
         if self.normalize:
             pointcloud[:, :3] = normalizeXZY(pointcloud[:, :3])
+
         pointcloud = np.random.permutation(pointcloud)
         pointcloud = pointcloud[: self.num_points, :]
         return pointcloud
 
     def dataloader(self, batch_size=32, shuffle=True, num_workers=0):
         return DataLoader(
-            self, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers
+            self,
+            batch_size=batch_size,
+            shuffle=shuffle,
+            num_workers=num_workers,
+            pin_memory=True,
         )
 
 

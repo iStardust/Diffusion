@@ -4,24 +4,28 @@ import numpy as np
 from diffusion.gaussian_diffusion import GaussianDiffusion
 from model.transformer import PointDiffusionTransformer
 from dataloader.dataload import Prepare_Dataset
+import argparse
+from config import CONFIG
 
 if __name__ == "__main__":
-
+    print("Using config {}".format(CONFIG))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    batch_size = 10
-    lr = 2e-4
-    epochs = 50
-    num_timesteps = 1000
-    chosen_category = "airplane"
+    batch_size = CONFIG["bs"]
+    lr = CONFIG["lr"]
+    epochs = CONFIG["epochs"]
+    num_timesteps = CONFIG["num_timesteps"]
+    chosen_category = CONFIG["category"]
     file_path = "dataloader/dataset/dataset/" + chosen_category
     sample_points = 512
     dataset, dataloader = Prepare_Dataset(
         filepath=file_path,
         batch_size=batch_size,
-        num_workers=4,
+        num_workers=CONFIG["num_workers"],
         num_points=sample_points,
     )
-    betas = np.linspace(0.0001, 0.02, num_timesteps, dtype=np.float64)
+    betas = np.linspace(
+        CONFIG["beta_min"], CONFIG["beta_max"], num_timesteps, dtype=np.float64
+    )
     model_path = "ckpts/uncondition/" + chosen_category + ".ckpt"
 
     noise_predictor = PointDiffusionTransformer(
@@ -29,9 +33,7 @@ if __name__ == "__main__":
     ).to(device)
     diffusion = GaussianDiffusion(betas, noise_predictor).to(device)
     optimizer = torch.optim.Adam(noise_predictor.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
-
-    min_loss = np.infty
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
     for epoch in range(epochs):
         print("Epoch:{}/{} ".format(epoch + 1, epochs))
@@ -49,9 +51,5 @@ if __name__ == "__main__":
         scheduler.step()
         loss = np.mean(running_loss)
         print("Loss: ", loss)
-        if loss < min_loss:
-            print(
-                "Best model found at epoch {}. Saving to {}".format(epoch, model_path)
-            )
-            min_loss = loss
-            torch.save(noise_predictor.state_dict(), model_path)
+        print("Model saved at {}".format(model_path))
+        torch.save(noise_predictor.state_dict(), model_path)
