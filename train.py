@@ -33,7 +33,9 @@ if __name__ == "__main__":
     ).to(device)
     diffusion = GaussianDiffusion(betas, noise_predictor).to(device)
     optimizer = torch.optim.Adam(noise_predictor.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer, step_size=CONFIG["lr_step"], gamma=0.1
+    )
 
     for epoch in range(epochs):
         print("Epoch:{}/{} ".format(epoch + 1, epochs))

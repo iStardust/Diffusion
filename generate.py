@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     chosen_category = CONFIG["category"]
     num_timesteps = CONFIG["num_timesteps"]
-    sample_nums = 2048
+    sample_nums = CONFIG["gen_sample"]
     bs = CONFIG["gen_bs"]
 
     model_path = "ckpts/uncondition/" + chosen_category + ".ckpt"
@@ -49,17 +49,12 @@ if __name__ == "__main__":
                 ply = PlyData([PlyElement.describe(vertex, "vertex")])
 
                 step = num_timesteps - t
-                if (
-                    step == num_timesteps
-                    or step == int(num_timesteps / 2)
-                    or step == int(num_timesteps / 10)
-                    or step <= int(num_timesteps / 50)
-                ):
-                    ply.write(
-                        output_path
-                        + "/i_"
-                        + str(i)
-                        + "_t_"
-                        + str(num_timesteps - t)
-                        + ".ply"
-                    )
+
+                ply.write(
+                    output_path
+                    + "/i_"
+                    + str(i)
+                    + "_t_"
+                    + str(num_timesteps - t)
+                    + ".ply"
+                )
